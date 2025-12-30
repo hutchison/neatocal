@@ -72,6 +72,11 @@ var NEATOCAL_PARAM = {
   //
   "month_code": [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ],
 
+  // weekend days (0=Sun, 1=Mon, ..., 5=Fri, 6=Sat)
+  // Default Sunday Monday.
+  //
+  "weekend_days": [ 0, 6 ],
+
   //
   "language" : "",
 
@@ -483,7 +488,8 @@ function neatocal_hallon_almanackan() {
 
         date_styles(span_date);
 
-        if (dt.getDay() == 0) {
+        //if (dt.getDay() == 0) {
+        if (NEATOCAL_PARAM.weekend_days.includes(dt.getDay())) {
           span_date.style.color = "rgb(230,37,7)";
           span_day.style.color = "rgb(230,37,7)";
           weekend_styles(span_day);
@@ -573,8 +579,9 @@ function neatocal_default() {
 
         let d = NEATOCAL_PARAM.weekday_code[ dt.getDay() ];
 
-        if ((dt.getDay() == 0) ||
-            (dt.getDay() == 6)) {
+        //if ((dt.getDay() == 0) ||
+        //    (dt.getDay() == 6)) {
+        if (NEATOCAL_PARAM.weekend_days.includes(dt.getDay())) {
           td.classList.add("weekend");
         }
 
@@ -740,8 +747,9 @@ function neatocal_aligned_weekdays() {
 
         // If it's a weekend (Su,Sa), add the 'weekend' class to allow for highlighting
         //
-        if ((dt.getDay() == 0) ||
-            (dt.getDay() == 6)) {
+        //if ((dt.getDay() == 0) ||
+        //    (dt.getDay() == 6)) {
+        if (NEATOCAL_PARAM.weekend_days.includes(dt.getDay())) {
           td.classList.add("weekend");
         }
 
@@ -852,6 +860,8 @@ function neatocal_override_param(param, data) {
 
     "weekday_code",
     "month_code",
+
+    "weekend_days",
 
     "language",
 
@@ -968,6 +978,8 @@ function neatocal_init() {
   let language_param = sp.get("language");
   let show_week_numbers_param = sp.get("show_week_numbers");
 
+  let weekend_days_param = sp.get("weekend_days");
+
   // Moon phase parameters
   //
   let show_moon_phase_param = sp.get("show_moon_phase");
@@ -1030,7 +1042,11 @@ function neatocal_init() {
     _l = sp.get("layout");
     if      (_l == "default")           { layout = "default"; }
     else if (_l == "aligned-weekdays")  { layout = "aligned-weekdays"; }
-    else if (_l == "hallon-almanackan") { layout = "hallon-almanackan"; NEATOCAL_PARAM.show_week_numbers = true; }
+    else if (_l == "hallon-almanackan") {
+      layout = "hallon-almanackan";
+      NEATOCAL_PARAM.show_week_numbers = true;
+      NEATOCAL_PARAM.weekend_days = [0];
+    }
   }
   NEATOCAL_PARAM.layout = layout;
 
@@ -1142,6 +1158,16 @@ function neatocal_init() {
 
   }
   NEATOCAL_PARAM.month_code = month_code;
+
+  //---
+
+  // thanks to https://github.com/fawaz-alesayi/neatocal
+  //
+  if ((weekend_days_param != null) &&
+      (typeof weekend_days_param !== "undefined")) {
+    let days = weekend_days_param.split(",").map(d => parseInt(d.trim()));
+    NEATOCAL_PARAM.weekend_days = days.filter(d => !isNaN(d) && d >= 0 && d <= 6);
+  }
 
   // hallon-almanackan defaults to showing week numbers.
   // If the showing week numbers is specified, use user specified value,
